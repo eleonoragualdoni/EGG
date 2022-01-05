@@ -13,8 +13,8 @@ def get_opts():
     parser = argparse.ArgumentParser()
     parser.add_argument("--path_objects_1_name", help="objects file with one name", default = "/Users/eleonora/OneDrive/PhD/EmeComm/VG_data/objects.json")
     parser.add_argument("--path_objects_multinames", help="objects file with multiple names", default = "/Users/eleonora/OneDrive/PhD/EmeComm/VG_data/objects12.json" )
-    parser.add_argument("--path_val_set_to_clean", help="validation set where we want to remove names", default = "/Users/eleonora/OneDrive/PhD/EmeComm/VG_data/splits/val_objects.json")
-    parser.add_argument("--path_save_new_val", help="directory to save the new validation set", default = '/Users/eleonora/OneDrive/PhD/EmeComm/VG_data/splits/new_val_objects.json')
+    parser.add_argument("--path_val_set_to_clean", help="validation set where we want to remove names", default = "/Users/eleonora/Downloads/val_objects.json")
+    parser.add_argument("--path_save_new_val", help="directory to save the new validation set", default = '/Users/eleonora/Desktop/new_val_objects.json')
     return parser.parse_args()
 
 
@@ -131,8 +131,17 @@ for item in new_val_objects:
 print(len(more_names))
 # 0
 
+new_val_image_ids = [i['image_id'] for i in sorted_new_val_objects]
 
+
+sorted_new_val_objects = []
+for i in val_image_ids:
+    for objects in new_val_objects:
+        if objects['image_id'] == i:
+            sorted_new_val_objects.append(objects)
+    
 
 with open(opts.path_save_new_val, 'w') as outfile:
-        json.dump(new_val_objects, outfile)
-
+        json.dump(sorted_new_val_objects, outfile)
+        
+    
