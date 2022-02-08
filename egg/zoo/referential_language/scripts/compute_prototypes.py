@@ -18,21 +18,31 @@ from scipy import spatial
 import pickle
 import os
 import h5py
+import argparse
+
+
+def get_opts():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--path_objects", help="objects file", default = 'VG_data/objects.json')
+    parser.add_argument("--path_image_data", help="image data file", default = 'VG_data/image_data.json')
+    parser.add_argument("--path_classes", help="classes file", default = "VG_data/objects_vocab.txt")
+    parser.add_argument("--path_imgs_folder", help="folder VG images", default = 'VG_data/')
+    parser.add_argument("--path_save_typicalities", help="directory to save typicality scores", default = "VG_typicalities/")
+    parser.add_argument("--path_save_prototypes", help="directory to save prototypes", default = "VG_prototypes/")
+    return parser.parse_args()
 
 # LOAD DATA 
-path_objects = 'VG_data/objects.json'
-with open(path_objects) as fin:
-    object_list = json.load(fin)
 
-path_image_data = 'VG_data/image_data.json'
-with open(path_image_data) as fin:
-    image_data = json.load(fin)
+opts = get_opts()
+with open(opts.path_objects) as f:
+    object_list = json.load(f)
+with open(opts.path_image_data) as f:
+    image_data = json.load(f) 
+with open(opts.path_classes) as f:
+    obj_classes = open(f).read().split("\n")
     
-# LOAD CLASSES AND CLEAN
+# CLEAN CLASSES
     
-class_vocab = "VG_data/objects_vocab.txt"
-obj_classes = open(class_vocab).read().split("\n")
-
 # organize dictionary of different writings of the same word
 dic_writings = {}
 for i in obj_classes:
@@ -81,13 +91,16 @@ for param in model.parameters():
     param.requires_grad = False
 model = model.eval()
 
+def pil_loader(path):
+    with Image.open(path) as img:
+        return img.convert('RGB')
 
 def get_prototypicality(name):
 
     feat_list = []
     similarities = []
     for obj in dic_name_objs[name]:
-        im_name = "VG_data/" + obj[0].split("/")[-2] + "/" + obj[0].split("/")[-1]
+        im_name = opts.path_imgs_folder + obj[0].split("/")[-2] + "/" + obj[0].split("/")[-1]
         im = pil_loader(im_name)
         img_w, img_h = im.size
         x = obj[1]['x']
@@ -111,9 +124,9 @@ def get_prototypicality(name):
 
 for name in cleaned_classes:
     prototype, similarities = get_prototypicality(name)
-    h5f = h5py.File('VG_prototypes/' + name + ".h5", 'w')
+    h5f = h5py.File(opts.path_save_prototypes + name + ".h5", 'w')
     h5f.create_dataset(name, data = prototype)
     h5f.close()
-    pickle.dump(similarities, open("VG_typicalities/" + name + ".pkl", "wb"))
+    pickle.dump(similarities, open(opts.path_save_typicalities + name + ".pkl", "wb"))
 
 

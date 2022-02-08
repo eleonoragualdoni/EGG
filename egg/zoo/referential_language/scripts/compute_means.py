@@ -7,15 +7,25 @@ Created on Fri Dec  3 13:07:41 2021
 """
 import pickle
 import torch
+import argparse
 from PIL import Image
 from data import VisualGenomeDataset
 from torchvision.transforms.functional import crop
 from torchvision import transforms as T
 
+def get_opts():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--objects_dir", help="objects folder", default = 'VG_data/')
+    parser.add_argument("--image_data_dir", help="image data folder", default = 'VG_data/')
+    return parser.parse_args()
+
+opts = get_opts()
+   
 # LOAD DATA 
 
-objects_dir = 'VG_data/'
-metadata_dir = 'VG_data/'
+objects_dir = opts.objects_dir
+metadata_dir = opts.image_data_dir
+
 dataset = VisualGenomeDataset(objects_dir, metadata_dir, "train")
 
 transform = T.Compose([T.Resize(64), T.ToTensor()])
